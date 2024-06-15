@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Bienvenido, {{ user.full_name }}</h2>
+        <p>Tu rol es: {{ user.role }}</p>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger">Cerrar Sesión</a>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Información del Usuario</div>
+                    <div class="card-body">
+                        <p><strong>Nombre de Usuario:</strong> {{ user.username }}</p>
+                        <p><strong>Cédula:</strong> {{ user.cedula }}</p>
+                        <p><strong>Fecha de Nacimiento:</strong> {{ user.birth_date }}</p>
+                        <p><strong>Rol:</strong> {{ user.role }}</p>
+                        <p><strong>Comisión:</strong> ${{ user.comision }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Contadores</div>
+                    <div class="card-body">
+                        <p><strong>Cartas Leídas:</strong> {{ user.cartas_leidas }}</p>
+                        <p><strong>Cartas Recibidas:</strong> {{ user.cartas_recibidas }}</p>
+                        <p><strong>Línea Amarilla:</strong> {{ user.linea_amarilla }}</p>
+                        <p><strong>Línea Azul:</strong> {{ user.linea_azul }}</p>
+                        <p><strong>Videollamadas:</strong> {{ user.videollamadas }}</p>
+                        <p><strong>Notas de Voz Recibidas:</strong> {{ user.notas_voz_recibidas }}</p>
+                        <p><strong>Notas de Voz Enviadas:</strong> {{ user.notas_voz_enviadas }}</p>
+                        <p><strong>Regalo Virtual:</strong> {{ user.regalo_virtual }}</p>
+                        <p><strong>Presente:</strong> {{ user.presente }}</p>
+                        <p><strong>Video del Perfil:</strong> {{ user.video_perfil }}</p>
+                        <p><strong>Adjunto Visto:</strong> {{ user.adjunto_visto }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">Comisiones</div>
+                    <div class="card-body">
+                        <button type="button" class="btn btn-primary" onclick="getCommissions()">Ver Comisiones</button>
+                        <div id="commissions-list" class="mt-3"></div>
+                        <div class="mt-3">
+                            <h4>Balance de Comisiones</h4>
+                            <p><strong>Total Mensual:</strong> $<span id="total-monthly-profit">0.00</span></p>
+                            <p><strong>Total Semanal:</strong> $<span id="total-weekly-profit">0.00</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function getCommissions() {
+            fetch('/get_commissions', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Error al obtener las comisiones');
+                }
+            }).then(data => {
+                let list = '<ul class="list-group">';
+                data.commissions.forEach(commission => {
+                    const userProfilePic = `/static/img/perfil-${commission['user-id']}.jpg`;
+                    list += `<li class="list-group-item">
+                        <img src="${userProfilePic}" alt="User Profile" class="img-thumbnail" width="50" height="50">
+                        <strong>User ID:</strong> ${commission['user-id']}<br>
+                        <strong>Target ID:</strong> ${commission['target-id']}<br>
+                        <strong>Profit:</strong> $${commission['profit']}
+                    </li>`;
+                });
+                list += '</ul>';
+                document.getElementById('commissions-list').innerHTML = list;
+                document.getElementById('total-monthly-profit').innerText = data.total_monthly_profit.toFixed(2);
+                document.getElementById('total-weekly-profit').innerText = data.total_weekly_profit.toFixed(2);
+            }).catch(error => {
+                alert(error.message);
+            });
+        }
+    </script>
+</body>
+</html>
